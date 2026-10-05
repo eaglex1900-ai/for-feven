@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For feven</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,600;1,800&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg1: #1a0b2e;
+    --bg2: #4a1942;
+    --rose: #ff4d8d;
+    --glow: #ff9ec4;
+    --text: #fff3f8;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Outfit', system-ui, sans-serif;
+    color: var(--text);
+    background: radial-gradient(circle at 20% 15%, var(--bg2), var(--bg1) 70%);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    text-align: center;
+  }
+  .card {
+    position: relative; z-index: 2;
+    padding: 2.5rem 2rem;
+    width: min(92vw, 520px);
+    border-radius: 28px;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.18);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 0 80px rgba(255,77,141,.25);
+  }
+  .emoji { font-size: 4rem; animation: beat 1.2s infinite; display: block; }
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic; font-weight: 800;
+    font-size: clamp(2rem, 7vw, 3rem);
+    line-height: 1.1; margin: 1rem 0 .6rem;
+    text-shadow: 0 0 24px var(--rose);
+  }
+  p { opacity: .85; margin-bottom: 1.8rem; min-height: 1.5em; }
+  .buttons { display: flex; gap: 1rem; justify-content: center; align-items: center; min-height: 70px; }
+  button {
+    font: 600 1.1rem 'Outfit', sans-serif;
+    border: 0; border-radius: 999px; cursor: pointer;
+    padding: .9rem 2rem; transition: transform .2s, box-shadow .2s;
+  }
+  #yes {
+    background: linear-gradient(135deg, var(--rose), #ff7aa8);
+    color: #fff; box-shadow: 0 0 28px rgba(255,77,141,.6);
+  }
+  #yes { transition: transform .25s; }
+  #no { background: rgba(255,255,255,.14); color: var(--text); }
+  #no.run { position: fixed; z-index: 5; transition: left .25s, top .25s; }
+  .hidden { display: none !important; }
+  .win h1 { font-size: clamp(2rem, 8vw, 3.4rem); }
+  .heart {
+    position: fixed; bottom: -40px; z-index: 1; pointer-events: none;
+    animation: rise linear forwards; opacity: .8;
+  }
+  @keyframes rise { to { transform: translateY(-115vh) rotate(25deg); opacity: 0; } }
+  @keyframes beat { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+  @media (prefers-reduced-motion: reduce) { .emoji, .heart { animation: none; } }
+</style>
+</head>
+<body>
+
+<main class="card" id="card">
+  <span class="emoji" id="emoji">🫰</span>
+  <h1 id="title">Hey Feven… can we talk all night today?</h1>
+  <p id="sub">No agenda. Just good vibes, wild stories and zero dull moments 😎</p>
+  <div class="buttons" id="buttons">
+    <button id="yes">Obviously, I'm in 😎💖</button>
+    <button id="no">Nah</button>
+  </div>
+</main>
+
+<script>
+  // ✏️ EDIT THESE
+  const HER_NAME = "Feven";
+  const taunts = [
+    "Nice try 😏", "Too slow, superstar 😜", "Plot twist: no 😌", "Catch me if you can 🏃",
+    "That's not the cool button 👀", "Access denied 🚫", "Hmm, wrong choice 💅"
+  ];
+
+  const $ = id => document.getElementById(id);
+  const yes = $("yes"), no = $("no");
+  $("title").textContent = `Hey ${HER_NAME}… can we talk all night today?`;
+
+  let tries = 0, scale = 1;
+
+  // floating hearts background
+  function heart() {
+    const h = document.createElement("div");
+    h.className = "heart";
+    h.textContent = ["🫰","🫰","🫰","✨","💘"][Math.floor(Math.random() * 5)];
+    h.style.left = Math.random() * 100 + "vw";
+    h.style.fontSize = 14 + Math.random() * 28 + "px";
+    h.style.animationDuration = 5 + Math.random() * 6 + "s";
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), 11000);
+  }
+  setInterval(heart, 350);
+
+  // the escaping No button
+  function dodge(e) {
+    if (e) e.preventDefault();
+    tries++;
+    // move the button out of the card so "fixed" positioning is relative to the screen
+    if (no.parentElement !== document.body) {
+      document.body.appendChild(no);
+      no.classList.add("run");
+    }
+    no.textContent = taunts[tries % taunts.length];
+    const pad = 12;
+    const w = no.offsetWidth, h = no.offsetHeight;
+    const maxX = Math.max(pad, window.innerWidth - w - pad);
+    const maxY = Math.max(pad, window.innerHeight - h - pad);
+    no.style.left = (pad + Math.random() * (maxX - pad)) + "px";
+    no.style.top = (pad + Math.random() * (maxY - pad)) + "px";
+    scale = Math.min(scale + 0.12, 2.2);
+    yes.style.transform = `scale(${scale})`;
+    $("sub").textContent = tries > 3 ? "You know the right button 😏" : "";
+  }
+
+  // No only runs away when she actually clicks / taps it
+  ["pointerdown", "touchstart", "click"].forEach(ev =>
+    no.addEventListener(ev, dodge, { passive: false })
+  );
+
+  // she said yes!
+  yes.addEventListener("click", () => {
+    no.classList.add("hidden");
+    $("buttons").classList.add("hidden");
+    $("card").classList.add("win");
+    $("emoji").textContent = "🥰";
+    $("title").textContent = `Locked in! ${HER_NAME} said YES 🔒✨`;
+    $("sub").textContent = "Tonight = you + me + endless chat. Can't wait 💞";
+    for (let i = 0; i < 80; i++) setTimeout(heart, i * 40);
+    setInterval(heart, 90);
+  });
+</script>
+</body>
+</html>
